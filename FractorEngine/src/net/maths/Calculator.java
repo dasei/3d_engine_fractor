@@ -38,7 +38,8 @@ public class Calculator {
 		
 		//LICHT DER LAMPE
 //		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
-		GameObjectFactory.randomizeColor(triangles);
+		if(Math.random()<0.01)
+			GameObjectFactory.randomizeColor(triangles);
 		
 		
 		// RENDERING PROCEDURE
@@ -808,5 +809,13 @@ public class Calculator {
 			out += "}";
 		}
 		return out + "}";
+	}
+	
+	public static double[] getCenterPoint(double[] point1, double[] point2) {
+		return new double[] {
+				point1[0] + ((point2[0] - point1[0])/2),
+				point1[1] + ((point2[1] - point1[1])/2),
+				point1[2] + ((point2[2] - point1[2])/2)
+		};
 	}
 }

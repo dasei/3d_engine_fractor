@@ -5,9 +5,11 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.buffering.FramebufferManager;
+import net.maths.GameObjectFactory;
 import net.window.Window;
 
 public class Engine {
@@ -72,7 +74,27 @@ public class Engine {
 		//GROUND
 //		addTriangles(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\ground.obj")));
 		
-		addTriangles(new double[][][] {{{-5, 0, 10}, {0, 5, 10}, {5, 0, 10}}});
+		for(int cycle = 0; cycle < 7; cycle++) {
+			double[][][] cache = new double[][][] {{{-5 + (cycle*10), 0, 10}, {0+(cycle*10), 5, 10}, {5+(cycle*10), 0, 10}}};
+			double[][][] cache2;
+			ArrayList<double[][]> cacheTriangles = new ArrayList<double[][]>();
+			
+			for(int i = 0; i < cycle; i++) {
+				for(int t = 0; t < cache.length; t++) {
+					cache2 = GameObjectFactory.splitTriangle(cache[t], false);
+					for(int x = 0; x < cache2.length; x++) {
+						cacheTriangles.add(cache2[x]);
+					}				
+				}
+				cache = cacheTriangles.toArray(new double[0][][]);
+				cacheTriangles.clear();
+			}
+			addTriangles(cache);
+		}
+		
+//		addTriangles(GameObjectFactory.splitTriangle(
+//				
+//		, false));
 		
 		
 		//SPHERES

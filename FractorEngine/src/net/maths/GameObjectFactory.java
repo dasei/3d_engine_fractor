@@ -1,4 +1,6 @@
 package net.maths;
+import static net.maths.Calculator.copy;
+
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,6 +8,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import net.Engine;
+
+
 
 public class GameObjectFactory {
 	
@@ -201,5 +205,31 @@ public class GameObjectFactory {
 			triangles[t][4][0] = engine.registerColor(new Color(color, color, color));
 		}
 		return triangles;
+	}
+	
+	/**
+	 * splits any given triangle into 4 equally sized sub-triangles. These are fully enclosed by the master triangle.
+	 * @param cloneAllReferences States if references to verticies and other points should be cloned, to prevent multiple array entries pointing to the same object(point-vector/array) on memory
+	 */
+	public static double[][][] splitTriangle(double[][] triangle, boolean cloneAllReferences) {
+		double[] center12 = Calculator.getCenterPoint(triangle[0], triangle[1]);
+		double[] center23 = Calculator.getCenterPoint(triangle[1], triangle[2]);
+		double[] center31 = Calculator.getCenterPoint(triangle[2], triangle[0]);
+		
+		if(cloneAllReferences) {
+			return new double[][][] {
+				{copy(triangle[0]), copy(center12), copy(center31)},
+				{copy(center12), copy(triangle[1]), copy(center23)},
+				{copy(triangle[2]), copy(center31), copy(center23)},
+				{center31, center12, center23}
+			};
+		} else {
+			return new double[][][] {
+				{triangle[0], center12, center31},
+				{center12, triangle[1], center23},
+				{triangle[2], center31, center23},
+				{center31, center12, center23}
+			};
+		}
 	}
 }
