@@ -1,3 +1,4 @@
+package net.window;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -5,6 +6,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 
 import javax.swing.JComponent;
+
+import net.Engine;
+import net.buffering.Framebuffer;
+import net.maths.Calculator;
 
 public class DrawComp extends JComponent {
 	

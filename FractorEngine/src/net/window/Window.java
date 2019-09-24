@@ -1,3 +1,4 @@
+package net.window;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -9,6 +10,9 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
+
+import net.Engine;
+import net.maths.Calculator;
 
 public class Window extends JFrame implements KeyListener, MouseListener {
 	

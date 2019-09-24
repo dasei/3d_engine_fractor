@@ -1,4 +1,9 @@
+package net.buffering;
 import java.awt.Dimension;
+
+import net.Engine;
+import net.threading.FramebufferClearThread;
+import net.threading.FramebufferRenderingThread;
 
 public class FramebufferManager {
 	

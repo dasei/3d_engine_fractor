@@ -1,3 +1,8 @@
+package net.threading;
+
+import net.Engine;
+import net.buffering.FramebufferManager;
+import net.maths.Calculator;
 
 public class FramebufferRenderingThread extends Thread {
 	public void run() {

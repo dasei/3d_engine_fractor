@@ -1,3 +1,4 @@
+package net;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -5,6 +6,9 @@ import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+
+import net.buffering.FramebufferManager;
+import net.window.Window;
 
 public class Engine {
 	

@@ -1,3 +1,4 @@
+package net.buffering;
 import java.awt.Dimension;
 
 public class Framebuffer {

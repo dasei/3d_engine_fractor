@@ -1,4 +1,8 @@
+package net.maths;
 import java.util.Arrays;
+
+import net.Engine;
+import net.buffering.Framebuffer;
 
 public class Calculator {
 	

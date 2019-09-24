@@ -1,3 +1,8 @@
+package net.threading;
+
+import net.Engine;
+import net.buffering.FramebufferManager;
+
 public class FramebufferClearThread extends Thread {
 	public void run() {
 		FramebufferManager framebufferManager = Engine.getInstance().getFramebufferManager();
