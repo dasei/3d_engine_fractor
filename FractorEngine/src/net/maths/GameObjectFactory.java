@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 import net.Engine;
+import net.gameobjects.GameObject;
 
 
 
@@ -64,7 +65,7 @@ public class GameObjectFactory {
 		};
 	}
 		
-	public static double[][][] readFromFile(File file) {
+	public static double[][][] readFromFileTriangles(File file) {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			
@@ -112,6 +113,10 @@ public class GameObjectFactory {
 			e.printStackTrace();
 		}
 		return new double[0][][];
+	}
+	
+	public static GameObject readFromFileGameObject(File file) {
+		return new GameObject(readFromFileTriangles(file));
 	}
 	
 	public static double[][][] randomizeColor(double[][][] triangles) {

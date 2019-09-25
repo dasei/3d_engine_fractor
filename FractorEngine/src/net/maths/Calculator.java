@@ -3,6 +3,7 @@ import java.util.Arrays;
 
 import net.Engine;
 import net.buffering.Framebuffer;
+import net.gameobjects.GameObject;
 
 public class Calculator {
 	
@@ -13,10 +14,10 @@ public class Calculator {
 	public static boolean OPTION_ROTATE_AROUND_X3_AXIS = false;// private static double OPTION_ROTATE_AROUND_X3_AXIS_currentRotation = 0;
 	
 	
-	public void render(double[][][] triangles) {
-		if(triangles == null)
+	public void render(GameObject[] gameObjects) {
+		if(gameObjects == null)
 			return;
-		STAT_TRIANGLES_AMOUNT = triangles.length;
+//		STAT_TRIANGLES_AMOUNT = triangles.length;//TODO
 		
 		Engine engine = Engine.getInstance();
 		double resolutionWidthHalf = engine.resolution.width/2d;		
@@ -38,162 +39,178 @@ public class Calculator {
 		
 		//LICHT DER LAMPE
 //		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
-		if(Math.random()<0.01)
-			GameObjectFactory.randomizeColor(triangles);
+//		if(Math.random()<0.01)
+//			GameObjectFactory.randomizeColor(triangles);
 		
 		
 		// RENDERING PROCEDURE
 		int stat_triangles_visible = 0;
+		double[][][] triangles;
 		double[][] triangle;
-		for(int t = 0; t < triangles.length; t++) {
-			if(triangles[t] == null)
-				continue;
-			triangle = copyTriangle(triangles[t]);
-			
-//			double rot = 0.6266468;
-//			rotateVectorX2(triangle[0], rot);
-//			rotateVectorX2(triangle[1], rot);
-//			rotateVectorX2(triangle[2], rot);
-			//rotate cube
-			if(OPTION_ROTATE_AROUND_X1_AXIS) {
-				double rot1 = (System.currentTimeMillis()/1000d)*0.58434534;
-				rotateVectorX1(triangle[0], rot1);
-				rotateVectorX1(triangle[1], rot1);
-				rotateVectorX1(triangle[2], rot1);
-			}			
-			if(OPTION_ROTATE_AROUND_X2_AXIS) {
-				double rot2 = (System.currentTimeMillis()/1000d*0.99);			
-				rotateVectorX2(triangle[0], rot2);
-				rotateVectorX2(triangle[1], rot2);
-				rotateVectorX2(triangle[2], rot2);
-			}
-			if(OPTION_ROTATE_AROUND_X3_AXIS) {
-				double rot3 = System.currentTimeMillis()/1000d;
-				rotateVectorX3(triangle[0], rot3);
-				rotateVectorX3(triangle[1], rot3);
-				rotateVectorX3(triangle[2], rot3);
-			}
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			//translate cube
-//			transformTriangle3D(triangle, new double[] {0, 0, 5}); //TODO remove this
-//			transformTriangle3D(triangle, new double[] {50, 50, 0}); //TODO remove this
-			
-			//TODO remove this cool wavy form
-//			transformTriangle3D(triangle, new double[] {0, Math.sin(System.currentTimeMillis()/1000d), 0});
-			
-			
-			
-			
-			
-			// Normale Culling
-			// AB x AC
-			double[] normalVec = crossProduct(
-					triangle[1][0] - triangle[0][0],
-					triangle[1][1] - triangle[0][1],
-					triangle[1][2] - triangle[0][2],
-					triangle[2][0] - triangle[0][0],
-					triangle[2][1] - triangle[0][1],
-					triangle[2][2] - triangle[0][2]
-			);
-			double[] vecTriangleToCamera = normalize(subtract(engine.cameraPosition, triangle[0]), true);
-			// normalVec <scalar> Triangle->Camera <= 0 ? unsichtbar
-			if(dotProduct(normalVec, vecTriangleToCamera) <= 0) {			
-//				trianglesRendered[t] = null;
-				continue;
-			}
-			
-			//camera translate (position)			
-			triangle[0] = subtract(triangle[0], engine.cameraPosition);
-			triangle[1] = subtract(triangle[1], engine.cameraPosition);
-			triangle[2] = subtract(triangle[2], engine.cameraPosition);
-			
-			//camera rotation
-			double camHorizontal = engine.cameraRotationHorizontal;
-			rotateVectorX2(triangle[0], camHorizontal);
-			rotateVectorX2(triangle[1], camHorizontal);
-			rotateVectorX2(triangle[2], camHorizontal);
-			double camVertical = engine.cameraRotationVertical;
-			rotateVectorX1(triangle[0], camVertical);
-			rotateVectorX1(triangle[1], camVertical);
-			rotateVectorX1(triangle[2], camVertical);
-			
-			
-//			System.out.println(vecTriangleToCamera);
-//			System.out.println();
-			stat_triangles_visible++;
-			
-			
-			
-			
-			
-			// Projection
-			// 3D => 2D
-			for(int v = 0; v < 3; v++) {
-				if(triangle[v][2] <= 0)
-					continue;				
-				triangle[v][0] /= triangle[v][2];
-				triangle[v][1] /= triangle[v][2];
+		for(int g = 0; g < gameObjects.length; g++) {
+			triangles = gameObjects[g].getTriangles();
+			for(int t = 0; t < triangles.length; t++) {
+				if(triangles[t] == null)
+					continue;
+				triangle = copyTriangle(triangles[t]);
 				
-//				triangle[v][2] = (triangle[v][2]*(20/(20-0.1))) + (triangle[v][2]*((-20*0.1)/(20-0.1))); 
-				//TODO add something like x *= screen size ratio => to stop distortion aspect ratio
-//				triangle[v][0] *= engine.resolution.width/(double)engine.resolution.height;
+	//			double rot = 0.6266468;
+	//			rotateVectorX2(triangle[0], rot);
+	//			rotateVectorX2(triangle[1], rot);
+	//			rotateVectorX2(triangle[2], rot);
+				//rotate cube
+				if(OPTION_ROTATE_AROUND_X1_AXIS) {
+					double rot1 = (System.currentTimeMillis()/1000d)*0.58434534;
+					rotateVectorX1(triangle[0], rot1);
+					rotateVectorX1(triangle[1], rot1);
+					rotateVectorX1(triangle[2], rot1);
+				}			
+				if(OPTION_ROTATE_AROUND_X2_AXIS) {
+					double rot2 = (System.currentTimeMillis()/1000d*0.99);			
+					rotateVectorX2(triangle[0], rot2);
+					rotateVectorX2(triangle[1], rot2);
+					rotateVectorX2(triangle[2], rot2);
+				}
+				if(OPTION_ROTATE_AROUND_X3_AXIS) {
+					double rot3 = System.currentTimeMillis()/1000d;
+					rotateVectorX3(triangle[0], rot3);
+					rotateVectorX3(triangle[1], rot3);
+					rotateVectorX3(triangle[2], rot3);
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				//translate cube
+	//			transformTriangle3D(triangle, new double[] {0, 0, 5}); //TODO remove this
+	//			transformTriangle3D(triangle, new double[] {50, 50, 0}); //TODO remove this
+				
+				//TODO remove this cool wavy form
+	//			transformTriangle3D(triangle, new double[] {0, Math.sin(System.currentTimeMillis()/1000d), 0});
+				
+				
+				
+				
+				
+				// Normale Culling
+				// AB x AC
+				double[] normalVec = crossProduct(
+						triangle[1][0] - triangle[0][0],
+						triangle[1][1] - triangle[0][1],
+						triangle[1][2] - triangle[0][2],
+						triangle[2][0] - triangle[0][0],
+						triangle[2][1] - triangle[0][1],
+						triangle[2][2] - triangle[0][2]
+				);
+				double[] vecTriangleToCamera = normalize(subtract(engine.cameraPosition, triangle[0]), true);
+				// normalVec <scalar> Triangle->Camera <= 0 ? unsichtbar
+				if(dotProduct(normalVec, vecTriangleToCamera) <= 0) {			
+	//				trianglesRendered[t] = null;
+					continue;
+				}
+				
+				//camera translate (position)			
+				triangle[0] = subtract(triangle[0], engine.cameraPosition);
+				triangle[1] = subtract(triangle[1], engine.cameraPosition);
+				triangle[2] = subtract(triangle[2], engine.cameraPosition);
+				
+				//camera rotation
+				double camHorizontal = engine.cameraRotationHorizontal;
+				rotateVectorX2(triangle[0], camHorizontal);
+				rotateVectorX2(triangle[1], camHorizontal);
+				rotateVectorX2(triangle[2], camHorizontal);
+				double camVertical = engine.cameraRotationVertical;
+				rotateVectorX1(triangle[0], camVertical);
+				rotateVectorX1(triangle[1], camVertical);
+				rotateVectorX1(triangle[2], camVertical);
+				
+				
+	//			System.out.println(vecTriangleToCamera);
+	//			System.out.println();
+				stat_triangles_visible++;
+				
+				
+				
+				
+				
+				// Projection
+				// 3D => 2D
+				for(int v = 0; v < 3; v++) {
+					if(triangle[v][2] <= 0)
+						continue;				
+					triangle[v][0] /= triangle[v][2];
+					triangle[v][1] /= triangle[v][2];
+					
+	//				triangle[v][2] = (triangle[v][2]*(20/(20-0.1))) + (triangle[v][2]*((-20*0.1)/(20-0.1))); 
+					//TODO add something like x *= screen size ratio => to stop distortion aspect ratio
+	//				triangle[v][0] *= engine.resolution.width/(double)engine.resolution.height;
+				}
+				
+				if(triangle[0][2] < 0 && triangle[1][2] < 0 && triangle[2][2] < 0)
+					continue;
+				
+				//System.out.println("cross: " + Arrays.toString(crossProduct(0, 1, 0, 1, 1, 0)));
+				
+				//triangle auf framebuffer übertragen
+				// 	 ((1+ triangle[...][...])/2 * resolution.width
+				//=> ((1+ triangle[...][...]) * (resolution.width/2)
+				//=> ((1+ triangle[...][...]) * (resolutionWidthHalf)
+				
+	//			rasterizeTriangle(framebuffer, (int)triangle[4][0],
+	//					(int) ((1+triangle[0][0])*resolutionWidthHalf),
+	//					(int) ((1-triangle[0][1])*resolutionWidthHalf),
+	//					(int) ((1+triangle[1][0])*resolutionWidthHalf),
+	//					(int) ((1-triangle[1][1])*resolutionWidthHalf),
+	//					(int) ((1+triangle[2][0])*resolutionWidthHalf),
+	//					(int) ((1-triangle[2][1])*resolutionWidthHalf)
+	//			);
+				rasterizeTriangle(framebuffer, (int)triangle[4][0],
+						(int) ((1+triangle[0][0])*resolutionWidthHalf),
+						(int) ((1-triangle[0][1])*resolutionWidthHalf),
+						triangle[0][2],
+						(int) ((1+triangle[1][0])*resolutionWidthHalf),
+						(int) ((1-triangle[1][1])*resolutionWidthHalf),
+						triangle[1][2],
+						(int) ((1+triangle[2][0])*resolutionWidthHalf),
+						(int) ((1-triangle[2][1])*resolutionWidthHalf),
+						triangle[2][2]
+				);
+				
+				if(engine.DRAW_WIREFRAME) {
+					drawTriangle(framebuffer, engine.WIREFRAME_COLOR_ID,
+							(int) ((1+triangle[0][0])*resolutionWidthHalf),
+							(int) ((1-triangle[0][1])*resolutionWidthHalf),
+							(int) ((1+triangle[1][0])*resolutionWidthHalf),
+							(int) ((1-triangle[1][1])*resolutionWidthHalf),
+							(int) ((1+triangle[2][0])*resolutionWidthHalf),
+							(int) ((1-triangle[2][1])*resolutionWidthHalf)
+					);
+				}
+				
+				
+	//			if(
+	//					(int) ((1+triangle[0][0])*resolutionWidthHalf) >= 0
+	//				&&	(int) ((1+triangle[0][0])*resolutionWidthHalf) < 500
+	//				&& 	(int) ((1-triangle[0][1])*resolutionWidthHalf) >= 0
+	//				&&	(int) ((1-triangle[0][1])*resolutionWidthHalf) < 500
+	//			) {
+	//				System.out.println("triangle onscreen: " +
+	//						(int) ((1+triangle[0][0])*resolutionWidthHalf)+";"+
+	//						(int) ((1-triangle[0][1])*resolutionWidthHalf)+";"+
+	//						(int) ((1+triangle[1][0])*resolutionWidthHalf)+";"+
+	//						(int) ((1-triangle[1][1])*resolutionWidthHalf)+";"+
+	//						(int) ((1+triangle[2][0])*resolutionWidthHalf)+";"+
+	//						(int) ((1-triangle[2][1])*resolutionWidthHalf)
+	//				);
+	//				System.out.println("triangle: " + Calculator.toString(triangle));
+	//				System.out.println("---");
+	//			}
 			}
-			
-			if(triangle[0][2] < 0 && triangle[1][2] < 0 && triangle[2][2] < 0)
-				continue;
-			
-			//System.out.println("cross: " + Arrays.toString(crossProduct(0, 1, 0, 1, 1, 0)));
-			
-			//triangle auf framebuffer übertragen
-			// 	 ((1+ triangle[...][...])/2 * resolution.width
-			//=> ((1+ triangle[...][...]) * (resolution.width/2)
-			//=> ((1+ triangle[...][...]) * (resolutionWidthHalf)
-			
-//			rasterizeTriangle(framebuffer, (int)triangle[4][0],
-//					(int) ((1+triangle[0][0])*resolutionWidthHalf),
-//					(int) ((1-triangle[0][1])*resolutionWidthHalf),
-//					(int) ((1+triangle[1][0])*resolutionWidthHalf),
-//					(int) ((1-triangle[1][1])*resolutionWidthHalf),
-//					(int) ((1+triangle[2][0])*resolutionWidthHalf),
-//					(int) ((1-triangle[2][1])*resolutionWidthHalf)
-//			);
-			rasterizeTriangle(framebuffer, (int)triangle[4][0],
-					(int) ((1+triangle[0][0])*resolutionWidthHalf),
-					(int) ((1-triangle[0][1])*resolutionWidthHalf),
-					triangle[0][2],
-					(int) ((1+triangle[1][0])*resolutionWidthHalf),
-					(int) ((1-triangle[1][1])*resolutionWidthHalf),
-					triangle[1][2],
-					(int) ((1+triangle[2][0])*resolutionWidthHalf),
-					(int) ((1-triangle[2][1])*resolutionWidthHalf),
-					triangle[2][2]
-			);
-			
-//			if(
-//					(int) ((1+triangle[0][0])*resolutionWidthHalf) >= 0
-//				&&	(int) ((1+triangle[0][0])*resolutionWidthHalf) < 500
-//				&& 	(int) ((1-triangle[0][1])*resolutionWidthHalf) >= 0
-//				&&	(int) ((1-triangle[0][1])*resolutionWidthHalf) < 500
-//			) {
-//				System.out.println("triangle onscreen: " +
-//						(int) ((1+triangle[0][0])*resolutionWidthHalf)+";"+
-//						(int) ((1-triangle[0][1])*resolutionWidthHalf)+";"+
-//						(int) ((1+triangle[1][0])*resolutionWidthHalf)+";"+
-//						(int) ((1-triangle[1][1])*resolutionWidthHalf)+";"+
-//						(int) ((1+triangle[2][0])*resolutionWidthHalf)+";"+
-//						(int) ((1-triangle[2][1])*resolutionWidthHalf)
-//				);
-//				System.out.println("triangle: " + Calculator.toString(triangle));
-//				System.out.println("---");
-//			}
 		}
 		
 		STAT_TRIANGLES_VISIBLE = stat_triangles_visible;
@@ -600,20 +617,20 @@ public class Calculator {
 		}
 	}
 	
-	private void drawTriangle(Framebuffer framebuffer, int x1, int y1, int x2, int y2, int x3, int y3) {
-		drawLine(framebuffer, x1, y1, x2, y2);
-		drawLine(framebuffer, x2, y2, x3, y3);
-		drawLine(framebuffer, x3, y3, x1, y1);
+	private void drawTriangle(Framebuffer framebuffer, int colorID, int x1, int y1, int x2, int y2, int x3, int y3) {
+		drawLine(framebuffer, colorID, x1, y1, x2, y2);
+		drawLine(framebuffer, colorID, x2, y2, x3, y3);
+		drawLine(framebuffer, colorID, x3, y3, x1, y1);
 	}
 	
-	private void drawLine(Framebuffer framebuffer, int x1, int y1, int x2, int y2) {		
-		double deltaX = (x2-x1);
+	private void drawLine(Framebuffer framebuffer, int colorID, int x1, int y1, int x2, int y2) {double deltaX = (x2-x1);
 		double deltaY = (y2-y1);
 		
 		double m = deltaY/deltaX;
 		
-		int[] buffer = framebuffer.buffer;
+		int[] buffer = framebuffer.buffer;		
 		int bufferWidth = framebuffer.width;
+		int bufferHeight = framebuffer.height;
 		
 		if(Math.abs(deltaX) > Math.abs(deltaY)) {
 			//step through the line normally (on x-axis) => f(x)
@@ -621,15 +638,17 @@ public class Calculator {
 			if(x1 < x2) {
 				//rightwards				
 				for(int x = x1; x <= x2; x++) {
-					buffer[(int)(y+0.5) * bufferWidth + x] = 1;
+					if(!(x < 0 || x >= bufferWidth || y < 0 || y+0.5 >= bufferHeight))						
+						buffer[(int)(y+0.5) * bufferWidth + x] = colorID;
 			       //g.fillRect(x, (int)(y+0.5), 1, 1);
 					y += m;
 				}
 			}else {
 				//leftwards
 				for(int x = x1; x >= x2; x--) {
+					if(!(x < 0 || x >= bufferWidth || y < 0 || y+0.5 >= bufferHeight))
+						buffer[(int)(y+0.5) * bufferWidth + x] = colorID;
 //					g.fillRect(x, (int)(y+0.5), 1, 1);
-					buffer[(int)(y+0.5) * bufferWidth + x] = 1;
 					y -= m;
 				}
 			}
@@ -640,15 +659,17 @@ public class Calculator {
 			if(y1 < y2) {
 				//downwards (positive y-axis)				
 				for(int y = y1; y <= y2; y++) {
+					if(!(x < 0 || x+0.5 >= bufferWidth || y < 0 || y >= bufferHeight))
+						buffer[y * bufferWidth + (int)(x+0.5)] = colorID;
 //					g.fillRect((int)(x+0.5), y, 1, 1);
-					buffer[y * bufferWidth + (int)(x+0.5)] = 1;
 					x += m;
 				}
 			}else {
 				//upwards
 				for(int y = y1; y >= y2; y--) {
+					if(!(x < 0 || x+0.5 >= bufferWidth || y < 0 || y >= bufferHeight))
+						buffer[y * bufferWidth + (int)(x+0.5)] = colorID;
 //					g.fillRect((int)(x+0.5), y, 1, 1);
-					buffer[y * bufferWidth + (int)(x+0.5)] = 1;
 					x -= m;
 				}
 			}

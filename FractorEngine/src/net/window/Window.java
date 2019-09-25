@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JFrame;
 
 import net.Engine;
+import net.gameobjects.SphereProcedural;
 import net.maths.Calculator;
 
 public class Window extends JFrame implements KeyListener, MouseListener {
@@ -82,6 +83,14 @@ public class Window extends JFrame implements KeyListener, MouseListener {
 //			} else {
 //				this.getContentPane().setCursor(Cursor.getDefaultCursor());
 //			}
+		}
+		
+		if(e.getKeyCode() == KeyEvent.VK_F2) {
+			Engine.getInstance().DRAW_WIREFRAME ^= true;
+		}
+		
+		if(e.getKeyCode() == KeyEvent.VK_F3) {
+			((SphereProcedural) Engine.getInstance().getGameObjects()[0]).proceed();
 		}
 	}
 	

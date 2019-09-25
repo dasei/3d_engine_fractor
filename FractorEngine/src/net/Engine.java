@@ -5,11 +5,11 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.buffering.FramebufferManager;
-import net.maths.GameObjectFactory;
+import net.gameobjects.GameObject;
+import net.gameobjects.SphereProcedural;
 import net.window.Window;
 
 public class Engine {
@@ -29,6 +29,8 @@ public class Engine {
 	
 	
 	public final int FPS_TARGET = 10000;
+	public boolean DRAW_WIREFRAME = false;
+	public final int WIREFRAME_COLOR_ID = registerColor(Color.red);
 	
 	private Window window;
 	
@@ -67,30 +69,32 @@ public class Engine {
 //		addTriangles(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFile(new File("H:\\BlenderAwesomeFiles\\27-blender\\blender\\Dragon_2.5_For_Animations.obj"))));
 		
 		
-		//LAMP
+//		//LAMP
 //		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
-//		addTriangles(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\lamp.obj")));
+//		addGameObject(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\lamp.obj")));
+		
+		addGameObject(new SphereProcedural(1));
 		
 		//GROUND
 //		addTriangles(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\ground.obj")));
 		
-		for(int cycle = 0; cycle < 7; cycle++) {
-			double[][][] cache = new double[][][] {{{-5 + (cycle*10), 0, 10}, {0+(cycle*10), 5, 10}, {5+(cycle*10), 0, 10}}};
-			double[][][] cache2;
-			ArrayList<double[][]> cacheTriangles = new ArrayList<double[][]>();
-			
-			for(int i = 0; i < cycle; i++) {
-				for(int t = 0; t < cache.length; t++) {
-					cache2 = GameObjectFactory.splitTriangle(cache[t], false);
-					for(int x = 0; x < cache2.length; x++) {
-						cacheTriangles.add(cache2[x]);
-					}				
-				}
-				cache = cacheTriangles.toArray(new double[0][][]);
-				cacheTriangles.clear();
-			}
-			addTriangles(cache);
-		}
+//		for(int cycle = 0; cycle < 7; cycle++) {
+//			double[][][] cache = new double[][][] {{{-5 + (cycle*10), 0, 10}, {0+(cycle*10), 5, 10}, {5+(cycle*10), 0, 10}}};
+//			double[][][] cache2;
+//			ArrayList<double[][]> cacheTriangles = new ArrayList<double[][]>();
+//			
+//			for(int i = 0; i < cycle; i++) {
+//				for(int t = 0; t < cache.length; t++) {
+//					cache2 = GameObjectFactory.splitTriangle(cache[t], false);
+//					for(int x = 0; x < cache2.length; x++) {
+//						cacheTriangles.add(cache2[x]);
+//					}				
+//				}
+//				cache = cacheTriangles.toArray(new double[0][][]);
+//				cacheTriangles.clear();
+//			}
+//			addTriangles(cache);
+//		}
 		
 //		addTriangles(GameObjectFactory.splitTriangle(
 //				
@@ -172,7 +176,9 @@ public class Engine {
 	public Dimension resolution;
 	private FramebufferManager framebufferManager;
 	
-	private double[][][] triangles = new double[0][][];
+//	private double[][][] triangles = new double[0][][];
+	private GameObject[] gameObjects = new GameObject[0];
+	private int gameObjectsAmount = 0;
 //	public double[][][] trianglesRendered;
 	
 	public double[] cameraPosition;
@@ -226,28 +232,38 @@ public class Engine {
 		if(cameraRotationVertical <-Math.PI/2) cameraRotationVertical = -Math.PI/2;
 	}
 	
-	private void addTriangles(double[][][] triangles) {
-		
-		double[][][] newArray = new double[(this.triangles!=null?this.triangles.length:0) + triangles.length][][];
-		int t = 0;
-		if(this.triangles != null)
-			for(; t < this.triangles.length; t++)
-				newArray[t] = this.triangles[t];
-		
-		for(int tNew = 0; tNew < triangles.length; tNew++)
-			newArray[t + tNew] = triangles[tNew];
-		
-		this.triangles = newArray;
-		
-		//adjust trianglesRendered Array
-//		trianglesRendered = new double[this.triangles.length][][];
+	private synchronized void addGameObject(GameObject gameObject) {
+		if(gameObjectsAmount >= gameObjects.length) {
+			gameObjects = Arrays.copyOf(gameObjects, Math.max(1, gameObjects.length*2));
+		}
+		gameObjects[gameObjectsAmount] = gameObject;
+		gameObjectsAmount++;
 	}
 	
-	private Color[] colorRegister = new Color[] {Color.WHITE};
+//	private void addTriangles(double[][][] triangles) {
+//		
+//		double[][][] newArray = new double[(this.triangles!=null?this.triangles.length:0) + triangles.length][][];
+//		int t = 0;
+//		if(this.triangles != null)
+//			for(; t < this.triangles.length; t++)
+//				newArray[t] = this.triangles[t];
+//		
+//		for(int tNew = 0; tNew < triangles.length; tNew++)
+//			newArray[t + tNew] = triangles[tNew];
+//		
+//		this.triangles = newArray;
+//		
+//		//adjust trianglesRendered Array
+////		trianglesRendered = new double[this.triangles.length][][];
+//	}
+	
+	private Color[] colorRegister;
 	public Color getColor(int index) {
 		return this.colorRegister[index];
 	}
 	public int registerColor(Color color) {
+		if(colorRegister == null)
+			colorRegister = new Color[] {Color.WHITE};
 		//check if this color already exists
 		final int registerLen = this.colorRegister.length;
 		int i = 0;
@@ -266,8 +282,12 @@ public class Engine {
 		return i;
 	}
 	
-	public double[][][] getTriangles() {
-		return this.triangles;
+//	public double[][][] getTriangles() {
+//		return this.triangles;
+//	}
+	
+	public GameObject[] getGameObjects() {
+		return gameObjects;
 	}
 	
 	public FramebufferManager getFramebufferManager() {

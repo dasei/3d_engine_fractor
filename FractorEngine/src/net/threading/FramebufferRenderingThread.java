@@ -15,7 +15,8 @@ public class FramebufferRenderingThread extends Thread {
 		
 		while(true) {
 			
-			calculator.render(engine.getTriangles());
+//			calculator.render(engine.getTriangles());
+			calculator.render(engine.getGameObjects());
 			
 			//sleep
 			framebufferManager.onThreadFinish(true);			
