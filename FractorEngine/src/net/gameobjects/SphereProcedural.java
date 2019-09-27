@@ -1,8 +1,12 @@
 package net.gameobjects;
 
-import net.maths.GameObjectFactory;
+import static net.maths.Calculator.copy;
+
+import net.maths.Calculator;
 
 public class SphereProcedural extends GameObject {
+	
+	private double radius;
 	
 	public SphereProcedural(double radius) {
 		super(new double[][][] {
@@ -17,23 +21,66 @@ public class SphereProcedural extends GameObject {
 			{{0,0,1}, {0,-1,0}, {1,0,0}}, //right back
 			{{0,0,1}, {-1,0,0}, {0,-1,0}} //left back
 		});
+		this.radius = radius;
 	}
 	
+//	public void proceed() {
+//		double[][][] trianglesCurrent = this.getTriangles();
+//		double[][][] trianglesNew = new double[trianglesCurrent.length*4][][];
+//		
+//		double[][][] trianglesCut;
+//		for(int t = 0; t < trianglesCurrent.length; t++) {
+//			trianglesCut = GameObjectFactory.splitTriangle(trianglesCurrent[t], true);
+//			
+//			//put cut triangles into the new array
+//			for(int n = 0; n < 4; n++) {
+//				trianglesNew[t*4 + n] = trianglesCut[n]; 
+//			}
+//		}
+//		
+//		this.triangles = trianglesNew;
+//	}
+	
 	public void proceed() {
-		double[][][] trianglesCurrent = this.getTriangles();
-		double[][][] trianglesNew = new double[trianglesCurrent.length*4][][];
+		int trianglesLen = this.triangles.length;
+		double[][][] triangleArrayNew = new double[4*trianglesLen][][];
 		
-		double[][][] trianglesCut;
-		for(int t = 0; t < trianglesCurrent.length; t++) {
-			trianglesCut = GameObjectFactory.splitTriangle(trianglesCurrent[t], true);
+		double[][] triangle;		
+		double[] pointAB; double[] pointBC; double[] pointCA;
+		for(int triangleI = 0; triangleI < trianglesLen; triangleI++) {
+			triangle = this.triangles[triangleI];
 			
-			//put cut triangles into the new array
-			for(int n = 0; n < 4; n++) {
-				trianglesNew[t*4 + n] = trianglesCut[n]; 
-			}
+			pointAB = Calculator.vectorMultiplyOverwrite(							//3. stretch it to match the radius => new sphere gets cURvIeR!
+					Calculator.normalize(											//2. normalize it
+						Calculator.subtractOverwriteVec1(							//1. get Vec from center of sphere to the new point between A and B
+								Calculator.getCenterPoint(triangle[0], triangle[1]),//0. get center point between A and B
+						this.position),
+				true),
+			this.radius);
+			
+			pointBC = Calculator.vectorMultiplyOverwrite(							//3. stretch it to match the radius => new sphere gets cURvIeR!
+					Calculator.normalize(											//2. normalize it
+						Calculator.subtractOverwriteVec1(							//1. get Vec from center of sphere to the new point between B and C
+								Calculator.getCenterPoint(triangle[1], triangle[2]),//0. get center point between B and C
+						this.position),
+				true),
+			this.radius);
+			
+			pointCA = Calculator.vectorMultiplyOverwrite(							//3. stretch it to match the radius => new sphere gets cURvIeR!
+					Calculator.normalize(											//2. normalize it
+						Calculator.subtractOverwriteVec1(							//1. get Vec from center of sphere to the new point between C and A
+								Calculator.getCenterPoint(triangle[2], triangle[0]),//0. get center point between C and A
+						this.position),
+				true),
+			this.radius);
+			
+			triangleArrayNew[triangleI*4] = new double[][] {copy(triangle[0]), copy(pointAB), copy(pointCA)};
+			triangleArrayNew[triangleI*4+1] = new double[][] {copy(pointAB), copy(triangle[1]), copy(pointBC)};
+			triangleArrayNew[triangleI*4+2] = new double[][] {copy(triangle[2]), copy(pointCA), copy(pointBC)};
+			triangleArrayNew[triangleI*4+3] = new double[][] {pointCA, pointAB, pointBC};
+			
 		}
-		
-		this.triangles = trianglesNew;
+		this.triangles = triangleArrayNew;
 	}
 	
 }

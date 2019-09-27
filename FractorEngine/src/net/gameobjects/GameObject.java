@@ -4,7 +4,7 @@ public class GameObject {
 	
 	protected double[][][] triangles;
 	
-	private double[] position;
+	protected double[] position;
 	
 	public GameObject(double[][][] triangles) {
 		this.triangles = triangles;

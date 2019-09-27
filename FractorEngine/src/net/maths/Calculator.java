@@ -792,6 +792,24 @@ public class Calculator {
 		};
 	}
 	
+	/**
+	 * Subtracts vec2 from vec1 be changing vec1s actual values => no new vector array created
+	 * @returns "vec1 - vec2"
+	 */
+	public static double[] subtractOverwriteVec1(double[] vec1, double[] vec2) {
+		vec1[0] -= vec2[0];
+		vec1[1] -= vec2[1];
+		vec1[2] -= vec2[2];
+		return vec1;
+	}
+	
+	public static double[] vectorMultiplyOverwrite(double[] vec1, double factor) {
+		vec1[0] *= factor;
+		vec1[1] *= factor;
+		vec1[2] *= factor;
+		return vec1;
+	}
+	
 	public static double[] normalize(double[] vec, boolean overwrite) {
 		double[] tar;
 		if(overwrite)
@@ -832,11 +850,22 @@ public class Calculator {
 		return out + "}";
 	}
 	
+	/**
+	 * returns a point in absolute space which is exactly in between two given points
+	 */
 	public static double[] getCenterPoint(double[] point1, double[] point2) {
 		return new double[] {
 				point1[0] + ((point2[0] - point1[0])/2),
 				point1[1] + ((point2[1] - point1[1])/2),
 				point1[2] + ((point2[2] - point1[2])/2)
+		};
+	}
+	
+	public static double[] vectorAdd(double[] vec1, double[] vec2) {
+		return new double[] {
+				vec1[0] + vec2[0],
+				vec1[1] + vec2[1],
+				vec1[2] + vec2[2]
 		};
 	}
 }
