@@ -48,7 +48,7 @@ public class Calculator {
 		double[][][] triangles;
 		double[][] triangle;
 		for(int g = 0; g < gameObjects.length; g++) {
-			triangles = gameObjects[g].getTriangles();
+			triangles = gameObjects[g].getTrianglesAbsolute();
 			for(int t = 0; t < triangles.length; t++) {
 				if(triangles[t] == null)
 					continue;
@@ -114,7 +114,7 @@ public class Calculator {
 					continue;
 				}
 				
-				//camera translate (position)			
+				//camera and GameObject-position translate (position)			
 				triangle[0] = subtract(triangle[0], engine.cameraPosition);
 				triangle[1] = subtract(triangle[1], engine.cameraPosition);
 				triangle[2] = subtract(triangle[2], engine.cameraPosition);
@@ -851,7 +851,7 @@ public class Calculator {
 	}
 	
 	/**
-	 * returns a point in absolute space which is exactly in between two given points
+	 * returns a point in which is exactly in between two given points
 	 */
 	public static double[] getCenterPoint(double[] point1, double[] point2) {
 		return new double[] {

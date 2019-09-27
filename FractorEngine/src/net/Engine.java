@@ -73,7 +73,7 @@ public class Engine {
 //		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
 //		addGameObject(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\lamp.obj")));
 		
-		addGameObject(new SphereProcedural(1));
+		addGameObject(new SphereProcedural(2).move(5, 0, 0));
 		
 		//GROUND
 //		addTriangles(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\ground.obj")));
