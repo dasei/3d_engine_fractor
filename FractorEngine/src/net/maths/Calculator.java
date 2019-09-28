@@ -9,10 +9,13 @@ public class Calculator {
 	
 	public static int STAT_TRIANGLES_AMOUNT;
 	public static int STAT_TRIANGLES_VISIBLE;
+	public static int STAT_TRIANGLES_CLIPPED;
+	public static int STAT_TRIANGLES_SKIPPED_Z;
 	public static boolean OPTION_ROTATE_AROUND_X1_AXIS = false;// private static double OPTION_ROTATE_AROUND_X1_AXIS_currentRotation = 0;
 	public static boolean OPTION_ROTATE_AROUND_X2_AXIS = false;// private static double OPTION_ROTATE_AROUND_X2_AXIS_currentRotation = 0;
 	public static boolean OPTION_ROTATE_AROUND_X3_AXIS = false;// private static double OPTION_ROTATE_AROUND_X3_AXIS_currentRotation = 0;
 	
+	public static final double CLIPPING_Z_MINIMUM = 0.1;
 	
 	public void render(GameObject[] gameObjects) {
 		if(gameObjects == null)
@@ -43,8 +46,12 @@ public class Calculator {
 //			GameObjectFactory.randomizeColor(triangles);
 		
 		
-		// RENDERING PROCEDURE
 		int stat_triangles_visible = 0;
+		int stat_triangles_clipped = 0;
+		int stat_triangles_skipped_z = 0;
+		
+		// RENDERING PROCEDURE
+//		double[][] triangleClipped;
 		double[][][] triangles;
 		double[][] triangle;
 		for(int g = 0; g < gameObjects.length; g++) {
@@ -87,10 +94,9 @@ public class Calculator {
 				
 				
 				//translate cube
-	//			transformTriangle3D(triangle, new double[] {0, 0, 5}); //TODO remove this
-	//			transformTriangle3D(triangle, new double[] {50, 50, 0}); //TODO remove this
+	//			transformTriangle3D(triangle, new double[] {0, 0, 5});
+	//			transformTriangle3D(triangle, new double[] {50, 50, 0});
 				
-				//TODO remove this cool wavy form
 	//			transformTriangle3D(triangle, new double[] {0, Math.sin(System.currentTimeMillis()/1000d), 0});
 				
 				
@@ -130,90 +136,83 @@ public class Calculator {
 				rotateVectorX1(triangle[2], camVertical);
 				
 				
-	//			System.out.println(vecTriangleToCamera);
-	//			System.out.println();
 				stat_triangles_visible++;
 				
 				
 				
-				
-				
-				// Projection
-				// 3D => 2D
-				for(int v = 0; v < 3; v++) {
-					if(triangle[v][2] <= 0)
-						continue;				
-					triangle[v][0] /= triangle[v][2];
-					triangle[v][1] /= triangle[v][2];
-					
-	//				triangle[v][2] = (triangle[v][2]*(20/(20-0.1))) + (triangle[v][2]*((-20*0.1)/(20-0.1))); 
-					//TODO add something like x *= screen size ratio => to stop distortion aspect ratio
-	//				triangle[v][0] *= engine.resolution.width/(double)engine.resolution.height;
-				}
-				
-				if(triangle[0][2] < 0 && triangle[1][2] < 0 && triangle[2][2] < 0)
+				//CLIPPING クリッピング
+				double[][][] trianglesClipped = clipTriangle(triangle);
+				if(trianglesClipped == null) {
+					stat_triangles_skipped_z++;
 					continue;
+				}
+//				System.out.println(toString(trianglesClipped[0]));
 				
-				//System.out.println("cross: " + Arrays.toString(crossProduct(0, 1, 0, 1, 1, 0)));
+				if(trianglesClipped[0] != triangle)
+					stat_triangles_clipped++;
 				
-				//triangle auf framebuffer übertragen
-				// 	 ((1+ triangle[...][...])/2 * resolution.width
-				//=> ((1+ triangle[...][...]) * (resolution.width/2)
-				//=> ((1+ triangle[...][...]) * (resolutionWidthHalf)
-				
-	//			rasterizeTriangle(framebuffer, (int)triangle[4][0],
-	//					(int) ((1+triangle[0][0])*resolutionWidthHalf),
-	//					(int) ((1-triangle[0][1])*resolutionWidthHalf),
-	//					(int) ((1+triangle[1][0])*resolutionWidthHalf),
-	//					(int) ((1-triangle[1][1])*resolutionWidthHalf),
-	//					(int) ((1+triangle[2][0])*resolutionWidthHalf),
-	//					(int) ((1-triangle[2][1])*resolutionWidthHalf)
-	//			);
-				rasterizeTriangle(framebuffer, (int)triangle[4][0],
-						(int) ((1+triangle[0][0])*resolutionWidthHalf),
-						(int) ((1-triangle[0][1])*resolutionWidthHalf),
-						triangle[0][2],
-						(int) ((1+triangle[1][0])*resolutionWidthHalf),
-						(int) ((1-triangle[1][1])*resolutionWidthHalf),
-						triangle[1][2],
-						(int) ((1+triangle[2][0])*resolutionWidthHalf),
-						(int) ((1-triangle[2][1])*resolutionWidthHalf),
-						triangle[2][2]
-				);
-				
-				if(engine.DRAW_WIREFRAME) {
-					drawTriangle(framebuffer, engine.WIREFRAME_COLOR_ID,
-							(int) ((1+triangle[0][0])*resolutionWidthHalf),
-							(int) ((1-triangle[0][1])*resolutionWidthHalf),
-							(int) ((1+triangle[1][0])*resolutionWidthHalf),
-							(int) ((1-triangle[1][1])*resolutionWidthHalf),
-							(int) ((1+triangle[2][0])*resolutionWidthHalf),
-							(int) ((1-triangle[2][1])*resolutionWidthHalf)
+				double[][] triangleCurrent;
+				for(int trianglesClippedI = 0; trianglesClippedI < trianglesClipped.length; trianglesClippedI++) {								
+					triangleCurrent = trianglesClipped[trianglesClippedI];
+					
+					// PROJECTION
+					// 3D => 2D
+					for(int v = 0; v < 3; v++) {
+//						if(triangleCurrent[v][2] <= 0)
+//							continue;				
+						triangleCurrent[v][0] /= triangleCurrent[v][2];
+						triangleCurrent[v][1] /= triangleCurrent[v][2];
+						
+		//				triangle[v][2] = (triangle[v][2]*(20/(20-0.1))) + (triangle[v][2]*((-20*0.1)/(20-0.1))); 
+						//TODO add something like x *= screen size ratio => to stop distortion aspect ratio
+		//				triangle[v][0] *= engine.resolution.width/(double)engine.resolution.height;
+					}
+					
+					
+					//triangle auf framebuffer übertragen
+					// 	 ((1+ triangle[...][...])/2 * resolution.width
+					//=> ((1+ triangle[...][...]) * (resolution.width/2)
+					//=> ((1+ triangle[...][...]) * (resolutionWidthHalf)
+					
+		//			rasterizeTriangle(framebuffer, (int)triangle[4][0],
+		//					(int) ((1+triangle[0][0])*resolutionWidthHalf),
+		//					(int) ((1-triangle[0][1])*resolutionWidthHalf),
+		//					(int) ((1+triangle[1][0])*resolutionWidthHalf),
+		//					(int) ((1-triangle[1][1])*resolutionWidthHalf),
+		//					(int) ((1+triangle[2][0])*resolutionWidthHalf),
+		//					(int) ((1-triangle[2][1])*resolutionWidthHalf)
+		//			);
+					rasterizeTriangle(framebuffer, (int)triangle[4][0],
+							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
+							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
+							triangleCurrent[0][2],
+							(int) ((1+triangleCurrent[1][0])*resolutionWidthHalf),
+							(int) ((1-triangleCurrent[1][1])*resolutionWidthHalf),
+							triangleCurrent[1][2],
+							(int) ((1+triangleCurrent[2][0])*resolutionWidthHalf),
+							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
+							triangleCurrent[2][2]
 					);
+					
+					if(engine.DRAW_WIREFRAME) {
+						drawTriangle(framebuffer, engine.WIREFRAME_COLOR_ID,
+								(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
+								(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
+								(int) ((1+triangleCurrent[1][0])*resolutionWidthHalf),
+								(int) ((1-triangleCurrent[1][1])*resolutionWidthHalf),
+								(int) ((1+triangleCurrent[2][0])*resolutionWidthHalf),
+								(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf)
+						);
+					}
+					
 				}
 				
-				
-	//			if(
-	//					(int) ((1+triangle[0][0])*resolutionWidthHalf) >= 0
-	//				&&	(int) ((1+triangle[0][0])*resolutionWidthHalf) < 500
-	//				&& 	(int) ((1-triangle[0][1])*resolutionWidthHalf) >= 0
-	//				&&	(int) ((1-triangle[0][1])*resolutionWidthHalf) < 500
-	//			) {
-	//				System.out.println("triangle onscreen: " +
-	//						(int) ((1+triangle[0][0])*resolutionWidthHalf)+";"+
-	//						(int) ((1-triangle[0][1])*resolutionWidthHalf)+";"+
-	//						(int) ((1+triangle[1][0])*resolutionWidthHalf)+";"+
-	//						(int) ((1-triangle[1][1])*resolutionWidthHalf)+";"+
-	//						(int) ((1+triangle[2][0])*resolutionWidthHalf)+";"+
-	//						(int) ((1-triangle[2][1])*resolutionWidthHalf)
-	//				);
-	//				System.out.println("triangle: " + Calculator.toString(triangle));
-	//				System.out.println("---");
-	//			}
 			}
 		}
 		
 		STAT_TRIANGLES_VISIBLE = stat_triangles_visible;
+		STAT_TRIANGLES_CLIPPED = stat_triangles_clipped;
+		STAT_TRIANGLES_SKIPPED_Z = stat_triangles_skipped_z;
 	}
 	
 	/**
@@ -866,6 +865,62 @@ public class Calculator {
 				vec1[0] + vec2[0],
 				vec1[1] + vec2[1],
 				vec1[2] + vec2[2]
+		};
+	}
+	
+	private static double[][][] clipTriangle(double[][] triangle) {
+		if(triangle[0][2] > CLIPPING_Z_MINIMUM) {
+			if(triangle[1][2] > CLIPPING_Z_MINIMUM) {
+				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
+					return new double[][][] {triangle};
+				} else {
+					return clipTriangle2PointsVisible(triangle[2], triangle[0], triangle[1]);
+				}				
+			} else {
+				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
+					return clipTriangle2PointsVisible(triangle[1], triangle[2], triangle[0]);
+				} else {
+					return clipTriangle1PointVisible(triangle[1], triangle[2], triangle[0]);
+				}
+			}			
+		} else {//if(triangle[0][2] < CLIPPING_Z_MINIMUM && triangle[1][2] < CLIPPING_Z_MINIMUM && triangle[2][2] < CLIPPING_Z_MINIMUM)
+			if(triangle[1][2] > CLIPPING_Z_MINIMUM) {
+				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
+					return clipTriangle2PointsVisible(triangle[0], triangle[1], triangle[2]);
+				} else {
+					return clipTriangle1PointVisible(triangle[2], triangle[0], triangle[1]);
+				}				
+			} else {
+				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
+					return clipTriangle1PointVisible(triangle[0], triangle[1], triangle[2]);
+				} else {
+					//三角のポイントがすべてカメラの後ろで
+					return null;
+				}
+			}
+		}
+	}
+	
+	private static double[][][] clipTriangle2PointsVisible(double[] pointToClip, double[] point2, double[] point3) {
+		double pointNew12InterpolationFactor = (-pointToClip[2]+CLIPPING_Z_MINIMUM)/(point2[2]-pointToClip[2]); //=> Distance from z=Z_MIN Plane to pointToClip  /  Distance from pointToClip to P2
+		double[] pointNew12 = new double[] {(point2[0]-pointToClip[0])*pointNew12InterpolationFactor + pointToClip[0], (point2[1]-pointToClip[1])*pointNew12InterpolationFactor + pointToClip[1], CLIPPING_Z_MINIMUM};
+		double pointNew13InterpolationFactor = (-pointToClip[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip[2]); //=> Distance from z=Z_MIN Plane to pointToClip  /  Distance from pointToClip to P2
+		double[] pointNew13 = new double[] {(point3[0]-pointToClip[0])*pointNew13InterpolationFactor + pointToClip[0], (point3[1]-pointToClip[1])*pointNew13InterpolationFactor + pointToClip[1], CLIPPING_Z_MINIMUM};
+		
+		return new double[][][] {
+			{pointNew12, point2, point3},
+			{pointNew13, copy(pointNew12), copy(point3)}
+		};
+	}
+	
+	private static double[][][] clipTriangle1PointVisible(double[] pointToClip1, double[] pointToClip2, double[] point3) {
+		double pointNew13InterpolationFactor = (-pointToClip1[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip1[2]); //=> Distance from z=Z_MIN Plane to pointToClip1  /  Distance from pointToClip1 to P3
+		double[] pointNew13 = new double[] {(point3[0]-pointToClip1[0])*pointNew13InterpolationFactor + pointToClip1[0], (point3[1]-pointToClip1[1])*pointNew13InterpolationFactor + pointToClip1[1], CLIPPING_Z_MINIMUM};
+		double pointNew23InterpolationFactor = (-pointToClip2[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip2[2]); //=> Distance from z=Z_MIN Plane to pointToClip2  /  Distance from pointToClip2 to P3
+		double[] pointNew23 = new double[] {(point3[0]-pointToClip2[0])*pointNew23InterpolationFactor + pointToClip2[0], (point3[1]-pointToClip2[1])*pointNew23InterpolationFactor + pointToClip2[1], CLIPPING_Z_MINIMUM};
+		
+		return new double[][][] {
+			{pointNew13, pointNew23, point3}
 		};
 	}
 }

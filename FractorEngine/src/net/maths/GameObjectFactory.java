@@ -79,6 +79,7 @@ public class GameObjectFactory {
 			String line;
 			while((line = reader.readLine()) != null) {
 				string_array_cache_length_4 = line.split(" ");
+//				System.out.println("s");
 				if(line.startsWith("v ")) {				//vertices
 					vertices.add(new double[] {
 							Double.parseDouble(string_array_cache_length_4[1]),
@@ -117,6 +118,11 @@ public class GameObjectFactory {
 	
 	public static GameObject readFromFileGameObject(File file) {
 		return new GameObject(readFromFileTriangles(file));
+	}
+	
+	public static GameObject randomizeColor(GameObject gameObject) {
+		randomizeColor(gameObject.getTriangles());
+		return gameObject;
 	}
 	
 	public static double[][][] randomizeColor(double[][][] triangles) {

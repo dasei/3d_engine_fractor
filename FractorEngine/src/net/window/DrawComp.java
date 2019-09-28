@@ -174,7 +174,9 @@ public class DrawComp extends JComponent {
 //		g.drawString("tri total \t" + Calculator.STAT_TRIANGLES_AMOUNT, 2, fontStats.getSize());
 		g.drawString("FPS: " + ((int)Engine.getInstance().FPS_AVERAGE), 2, fontStats.getSize());
 		g.drawString("tri vis: " + (int)(Calculator.STAT_TRIANGLES_VISIBLE/(double)Calculator.STAT_TRIANGLES_AMOUNT*100) + "% " + Calculator.STAT_TRIANGLES_VISIBLE + " / " + Calculator.STAT_TRIANGLES_AMOUNT, 2, fontStats.getSize()*2);
-		g.drawString("X:" + (double)((int)(engine.cameraPosition[0]*10)/10d) + ",Y:" + (double)((int)(engine.cameraPosition[1]*10)/10d) + ",Z:" + (double)((int)(engine.cameraPosition[2]*10)/10d), 2, fontStats.getSize()*3);
+		g.drawString("tri skipped(Z): " + Calculator.STAT_TRIANGLES_SKIPPED_Z, 2, fontStats.getSize()*3);
+		g.drawString("tri clipped: " + Calculator.STAT_TRIANGLES_CLIPPED, 2, fontStats.getSize()*4);
+		g.drawString("X:" + (double)((int)(engine.cameraPosition[0]*10)/10d) + ",Y:" + (double)((int)(engine.cameraPosition[1]*10)/10d) + ",Z:" + (double)((int)(engine.cameraPosition[2]*10)/10d), 2, fontStats.getSize()*5);
 //		g.drawString("rot: " + Math.toDegrees(Engine.getInstance().cameraRotationHorizontal) + "°", 2, fontStats.getSize()*2);
 //		g.drawString("visible " + Calculator.STAT_TRIANGLES_VISIBLE + " " + (int)(Calculator.STAT_TRIANGLES_VISIBLE/(double)Calculator.STAT_TRIANGLES_AMOUNT*100) + "%", 2, fontStats.getSize()*2);
 	}
