@@ -3,6 +3,7 @@ import java.util.Arrays;
 
 import net.Engine;
 import net.buffering.Framebuffer;
+import net.buffering.Texture;
 import net.gameobjects.GameObject;
 
 public class Calculator {
@@ -44,6 +45,18 @@ public class Calculator {
 //		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
 //		if(Math.random()<0.01)
 //			GameObjectFactory.randomizeColor(triangles);
+		
+		
+//		rasterizeTriangleBottomSided(framebuffer, Texture.textureDEBUG, 
+//				new double[] {0.5,0,1,1,0,1},
+//				130, 50, 20, 150, 150, 1, 50, 150, 1
+//		);
+//		
+//		if(1==1)
+//			return;
+		
+		
+		
 		
 		
 		int stat_triangles_visible = 0;
@@ -182,7 +195,22 @@ public class Calculator {
 		//					(int) ((1+triangle[2][0])*resolutionWidthHalf),
 		//					(int) ((1-triangle[2][1])*resolutionWidthHalf)
 		//			);
-					rasterizeTriangle(framebuffer, (int)triangle[4][0],
+					
+					
+					//TODO ADD THIS AGAIN!!!!!!!!!!!!!!!
+//					rasterizeTriangle(framebuffer, (int)triangle[4][0],
+//							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
+//							triangleCurrent[0][2],
+//							(int) ((1+triangleCurrent[1][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[1][1])*resolutionWidthHalf),
+//							triangleCurrent[1][2],
+//							(int) ((1+triangleCurrent[2][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
+//							triangleCurrent[2][2]
+//					);
+					
+					rasterizeTriangle(framebuffer, Texture.textureDEBUG, triangleCurrent[5],
 							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
 							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
 							triangleCurrent[0][2],
@@ -193,6 +221,10 @@ public class Calculator {
 							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
 							triangleCurrent[2][2]
 					);
+					
+					
+					
+					
 					
 					if(engine.DRAW_WIREFRAME) {
 						drawTriangle(framebuffer, engine.WIREFRAME_COLOR_ID,
@@ -401,6 +433,131 @@ public class Calculator {
 		}
 	}
 	
+	/**
+	 * given coordinates must be in buffer-space / buffer ready(mirrored y values)
+	 */
+	private void rasterizeTriangle(Framebuffer framebuffer, Texture texture, double[] textureCoordinates, int x1, int y1, double z1, int x2, int y2, double z2, int x3, int y3, double z3) {
+//		System.out.println("rasterizing tri: " + x1 + "," + y1 + "; " + x2 + "," + y2 + "; " + x3 + "," + y3);
+		
+		if(x1==x2 && x2==x3 && y1==y2 && y2==y3) {
+			framebuffer.buffer[(y1 * framebuffer.width) + x1] = texture.getTextureMatrix()[0];
+			return;
+		}
+		
+		//まず、もうTOPかBOTTOMの三角か確認して
+		// NOTE: as Y-values are buffer-ready, the following statements are a bit mind boggingly nerve wracking
+		//    *: Y values get bigger, the more 'down' the point goes (=> buffer-matrix)
+		if(y1 == y2) {
+			if(y1 < y3) { // y1 and y2 are 'visually' above y3 (when looked at in the buffer)
+				rasterizeTriangleTopSided(framebuffer, texture, x1, y1, z1, textureCoordinates[0], textureCoordinates[1], x2, y2, z2, textureCoordinates[2], textureCoordinates[3], x3, y3, z3, textureCoordinates[4], textureCoordinates[5]);
+			} else {
+				rasterizeTriangleBottomSided(framebuffer, texture, x3, y3, z3, textureCoordinates[4], textureCoordinates[5], x1, y1, z1, textureCoordinates[0], textureCoordinates[1], x2, y2, z2, textureCoordinates[2], textureCoordinates[3]);
+			}
+		} else if(y2 == y3) {
+			if(y2 < y1) {
+				rasterizeTriangleTopSided(framebuffer, texture, x2, y2, z2, textureCoordinates[2], textureCoordinates[3], x3, y3, z3, textureCoordinates[4], textureCoordinates[5], x1, y1, z1, textureCoordinates[0], textureCoordinates[1]);
+			} else {
+				rasterizeTriangleBottomSided(framebuffer, texture, x1, y1, z1, textureCoordinates[0], textureCoordinates[1], x2, y2, z2, textureCoordinates[2], textureCoordinates[3], x3, y3, z3, textureCoordinates[4], textureCoordinates[5]);
+			}
+		} else if(y3 == y1) {
+			if(y3 < y2) {
+				rasterizeTriangleTopSided(framebuffer, texture, x3, y3, z3, textureCoordinates[4], textureCoordinates[5], x1, y1, z1, textureCoordinates[0], textureCoordinates[1], x2, y2, z2, textureCoordinates[2], textureCoordinates[3]);
+			} else {
+				rasterizeTriangleBottomSided(framebuffer, texture, x2, y2, z2, textureCoordinates[2], textureCoordinates[3], x3, y3, z3, textureCoordinates[4], textureCoordinates[5], x1, y1, z1, textureCoordinates[0], textureCoordinates[1]);
+			}
+		} else {
+//			System.out.println("ws");
+			//triangle does not yet have a side thats horizontal => splitting triangle in two
+			//1. "sort" triangle, so that y1Sort is the point on top, the other two follow in clockwise order
+			int x1Sort, x2Sort, x3Sort;
+			int y1Sort, y2Sort, y3Sort;
+			double z1Sort, z2Sort, z3Sort;
+			
+			double tex1xSort; double tex1ySort;
+			double tex2xSort; double tex2ySort;
+			double tex3xSort; double tex3ySort;
+			if(y1 < y2 && y1 < y3) {
+				x1Sort = x1;	y1Sort = y1;	z1Sort = z1;
+				x2Sort = x2;	y2Sort = y2;	z2Sort = z2;
+				x3Sort = x3;	y3Sort = y3;	z3Sort = z3;
+				tex1xSort = textureCoordinates[0]; tex1ySort = textureCoordinates[1];
+				tex2xSort = textureCoordinates[2]; tex2ySort = textureCoordinates[3];
+				tex3xSort = textureCoordinates[4]; tex3ySort = textureCoordinates[5];
+			}else if(y2 < y1 && y2 < y3) {
+				x1Sort = x2;	y1Sort = y2;	z1Sort = z2;
+				x2Sort = x3;	y2Sort = y3;	z2Sort = z3;
+				x3Sort = x1;	y3Sort = y1;	z3Sort = z1;
+				tex1xSort = textureCoordinates[2]; tex1ySort = textureCoordinates[3];
+				tex2xSort = textureCoordinates[4]; tex2ySort = textureCoordinates[5];
+				tex3xSort = textureCoordinates[0]; tex3ySort = textureCoordinates[1];
+			}else{
+				x1Sort = x3;	y1Sort = y3;	z1Sort = z3;
+				x2Sort = x1;	y2Sort = y1;	z2Sort = z1;
+				x3Sort = x2;	y3Sort = y2;	z3Sort = z2;
+				tex1xSort = textureCoordinates[4]; tex1ySort = textureCoordinates[5];
+				tex2xSort = textureCoordinates[0]; tex2ySort = textureCoordinates[1];
+				tex3xSort = textureCoordinates[2]; tex3ySort = textureCoordinates[3];
+			}
+			
+			
+//			System.out.println("resorting tri: " + x1Sort + "," + y1Sort + "; " + x2Sort + "," + y2Sort + "; " + x3Sort + "," + y3Sort);
+			
+			//2. check if the middle point (y-axis) is on the left or right side
+			//3. get x coordinate of the new point that will be created to split the triangle
+			// => do that by interpolating the other two points( on top and bottom)s X koordinate with the middle points y coodinate
+			int pointNewX;
+			double pointNewZ;
+			double triangleNewInterpolationFactor;
+			double triangleNewX, triangleNewY;
+			if(y3Sort > y2Sort) { //middle=right
+				pointNewX = x1Sort + (int)( (x3Sort-x1Sort)* ((y2Sort-y1Sort)/(double)(y3Sort-y1Sort)) );
+				pointNewZ = z1Sort + ( (y2Sort-y1Sort) * ((z3Sort-z1Sort) / (y3Sort - y1Sort))); //point lies on line between Point1 and Point3
+				
+				triangleNewInterpolationFactor = (y2Sort-y1Sort)/(double)(y3Sort-y1Sort);
+				triangleNewX = tex1xSort + ((tex3xSort-tex1xSort)*(triangleNewInterpolationFactor));
+				triangleNewY = tex1ySort + ((tex3ySort-tex1ySort)*(triangleNewInterpolationFactor));
+//				System.out.println(pointNewZ);
+//				pointNewY = y2Sort;
+				rasterizeTriangleBottomSided(framebuffer, texture, x1Sort, y1Sort, z1Sort, tex1xSort, tex1ySort, x2Sort, y2Sort, z2Sort, tex2xSort, tex2ySort, 
+						pointNewX,
+						y2Sort,
+						pointNewZ,
+						triangleNewX, triangleNewY
+				);
+				rasterizeTriangleTopSided(framebuffer,texture, 
+						pointNewX,
+						y2Sort,
+						pointNewZ,
+						triangleNewX, triangleNewY,
+				x2Sort, y2Sort, z2Sort, tex2xSort, tex2ySort, x3Sort, y3Sort, z3Sort, tex3xSort, tex3ySort);
+			} else { //middle=left
+				pointNewX = x1Sort + (int)( (x2Sort-x1Sort)* ((y3Sort-y1Sort)/(double)(y2Sort-y1Sort)) );
+				pointNewZ = z1Sort + ( (y3Sort-y1Sort) * ((z2Sort-z1Sort) / (y2Sort - y1Sort))); //point lies on line between Point1 and Point2
+				
+				triangleNewInterpolationFactor = (y3Sort-y1Sort)/(double)(y2Sort-y1Sort);
+				triangleNewX = tex1xSort + ((tex2xSort-tex1xSort)*(triangleNewInterpolationFactor));
+				triangleNewY = tex1ySort + ((tex2ySort-tex1ySort)*(triangleNewInterpolationFactor));
+//				System.out.println(pointNewZ);
+//				pointNewY = y3Sort;
+				rasterizeTriangleBottomSided(framebuffer, texture, x1Sort, y1Sort, z1Sort, tex1xSort, tex1ySort,
+						pointNewX,
+						y3Sort,
+						pointNewZ,
+						triangleNewX, triangleNewY,
+				x3Sort, y3Sort, z3Sort, tex3xSort, tex3ySort);
+				rasterizeTriangleTopSided(framebuffer, texture, x3Sort, y3Sort, z3Sort, tex3xSort, tex3ySort,
+						pointNewX,
+						y3Sort,
+						pointNewZ,
+						triangleNewX, triangleNewY,
+				x2Sort, y2Sort, z2Sort, tex2xSort, tex2ySort);
+			}
+			
+//			System.out.println("PointNew: " + pointNewX + ", " + pointNewY);
+			
+		}
+	}
+	
 	/** 
 	 * NOTE: all coordinates are in buffer-scope => Y values get bigger, the more 'downwards' one goes
 	 * @param x1 top Point x
@@ -517,6 +674,122 @@ public class Calculator {
 	}
 	
 	/** 
+	 * NOTE: all coordinates are in buffer-scope => Y values get bigger, the more 'downwards' one goes
+	 * @param x1 top Point x
+	 * @param y1 top Point y
+	 */
+	private void rasterizeTriangleBottomSided(Framebuffer framebuffer, Texture texture, int x1, int y1, double z1, double tex1x, double tex1y, int x2, int y2, double z2, double tex2x, double tex2y, int x3, int y3, double z3, double tex3x, double tex3y) {
+//		System.out.println("rasterizing BOTTOMsided tri: " + x1 + "," + y1 + "; " + x2 + "," + y2 + "; " + x3 + "," + y3);
+		
+		
+//		rasterizeTriangleBottomSided(framebuffer, colorIndex, x1, y1, x2, y2, x3, y3);
+//		if(1==1)return;
+		
+		
+		int[] framebufferBuffer = framebuffer.buffer;
+		double[] framebufferZBuffer = framebuffer.zBuffer;
+		int framebufferWidth = framebuffer.width;
+		
+//		if(y1 >= 0 && y1 < framebufferWidth && x1 >= 0 && x1 < framebuffer.height)
+//			framebufferBuffer[y1 * framebufferWidth + x1] = 1;
+//		if(y2 >= 0 && y2 < framebufferWidth && x2 >= 0 && x2 < framebuffer.height)
+//			framebufferBuffer[y2 * framebufferWidth + x2] = 1;
+//		if(y3 >= 0 && y3 < framebufferWidth && x3 >= 0 && x3 < framebuffer.height)
+//			framebufferBuffer[y3 * framebufferWidth + x3] = 1;
+		
+		//RASTERIZATION
+		double xLeft = x3; //left border of the triangle, defines beginning of X-Loop's range
+		double xRight = x2; //right border of the triangle, defines end of X-Loop's range
+		
+		double xDeltaLeft = (x1 - x3) / (double)(y3 - y1); // value that gets added to xLeft for every Row (Y-Iteration) that passes
+		double xDeltaRight = (x1 - x2) / (double)(y2 - y1); // value that gets added to xRight (if right side of triangle is pointed to the middle, this value will be negative) for every Row (Y-Iteration) that passes
+		
+		
+		//Z-BUFFERING
+		double zGradientHorizontal = (z2 - z3) / (x2 - x3); //amount of z that gets added for every step in the x-direction		
+		double zLeft = z3;
+		double zDeltaPerRow = (z1 - z3) / (y3 - y1); //amount of z that gets added for every step in the y-direction (interpolation between Point3 and Point1, splitting it up in the number of rows)
+//		System.out.println(xLeft + ", " + xRight + ";  " + xDeltaLeft + ", " + xDeltaRight);
+		
+		
+		//TEXTURING
+		double textureLeftX = tex3x; //left border of the textures X coord
+		double textureLeftY = tex3y; //left border of the textures Y coord
+//		double textureRightX = textureCoordinates[2][0]; //right border of the textures X coord
+//		double textureRightY = textureCoordinates[2][1]; //right border of the textures Y coord
+		
+		double textureGradientXHorizontal = (tex2x-textureLeftX) / (x2-x3); //amount that gets added to textureX for every horizontal step
+		//TODO bei folgendem kommt IMMER 0 raus! (p2 und p3 sind vom y Wert her ja eh auf dem selben Level
+		double textureGradientYHorizontal = (tex2y-textureLeftY) / (x2-x3); //amount that gets added to textureY for every horizontal step
+		
+		double textureDeltaXPerRow = (tex1x-textureLeftX) / (y3-y1);
+		double textureDeltaYPerRow = (tex1y-textureLeftY) / (y3-y1);
+		
+		int[] textureMatrix = texture.getTextureMatrix();
+		int textureMatrixWidth = texture.textureMatrixWidth;
+		int textureMatrixHeight = texture.textureMatrixHeight;
+		
+		
+		int minY = Math.max(0, y1);
+//		System.out.println((x1 - x3) + " / " + (y3 - y1) + " = " + xDeltaLeft);
+		
+		//if the baseline of this triangles lies a bit out of the viewport, some y-rows will be skipped. xDelta still needs to updated for those skipped rows:
+		int rowsSkipped;
+		if((rowsSkipped = y2 - (framebuffer.height - 1)) > 0) {
+			xLeft += rowsSkipped * xDeltaLeft;
+			xRight += rowsSkipped * xDeltaRight;
+			zLeft += rowsSkipped * zDeltaPerRow;
+			
+			textureLeftX += rowsSkipped * textureDeltaXPerRow;
+			textureLeftY += rowsSkipped * textureDeltaYPerRow;
+		}
+//		System.out.println(rowsSkipped + ", " + xLeft);
+		double zCurrent;
+		double textureXCurrent;
+		double textureYCurrent;
+		int xSkipped;
+		int bufferAddres;
+		for(int y = Math.min(framebuffer.height-1, y2); y >= minY; y--) {
+			zCurrent = zLeft;
+			textureXCurrent = textureLeftX;
+			textureYCurrent = textureLeftY;
+			if((xSkipped = (int) -xLeft) > 0) { //check if some xValues (from the left onwards) got skipped				
+				zCurrent += xSkipped * zGradientHorizontal;
+				
+				textureXCurrent += xSkipped * textureGradientXHorizontal;
+				textureYCurrent += xSkipped * textureGradientYHorizontal;
+			}
+			bufferAddres = y * framebufferWidth + ((int) Math.max(0, xLeft));
+			for(int x = (int) Math.max(0, xLeft); x < Math.min(framebuffer.width-1, xRight); x++) {
+				if(framebufferZBuffer[bufferAddres] > zCurrent) {
+					framebufferZBuffer[bufferAddres] = zCurrent;
+					if(textureYCurrent >= 0 && textureYCurrent < 1.01 && textureXCurrent >= 0 && textureXCurrent < 1) {
+						if(textureYCurrent < 1) {
+							framebufferBuffer[bufferAddres] = textureMatrix[(int)((textureYCurrent) * textureMatrixWidth) * textureMatrixWidth + (int)(textureXCurrent * textureMatrixWidth)];
+						} else {
+							framebufferBuffer[bufferAddres] = textureMatrix[(textureMatrixHeight-1) * textureMatrixWidth + (int)(textureXCurrent * textureMatrixWidth)];
+//							System.out.println(textureYCurr);
+						}
+					} else
+						framebufferBuffer[bufferAddres] = 0;
+				}
+				zCurrent += zGradientHorizontal;
+				
+				textureXCurrent += textureGradientXHorizontal;
+				textureYCurrent += textureGradientYHorizontal;
+				
+				bufferAddres++;
+			}
+			xLeft += xDeltaLeft;
+			xRight += xDeltaRight;
+			zLeft += zDeltaPerRow;
+			
+			textureLeftX += textureDeltaXPerRow;
+			textureLeftY += textureDeltaYPerRow;
+		}		
+	}
+	
+	/** 
 	 * @param x1 top left Point x
 	 * @param y1 top left Point y
 	 */
@@ -613,6 +886,111 @@ public class Calculator {
 			xLeft += xDeltaLeft;
 			xRight += xDeltaRight;
 			zLeft += zDeltaPerRow;
+		}
+	}
+	
+	/** 
+	 * @param x1 top left Point x
+	 * @param y1 top left Point y
+	 */
+	private void rasterizeTriangleTopSided(Framebuffer framebuffer, Texture texture, int x1, int y1, double z1, double tex1x, double tex1y, int x2, int y2, double z2, double tex2x, double tex2y, int x3, int y3, double z3, double tex3x, double tex3y) {		
+//		rasterizeTriangle(framebuffer, colorIndex, x1, y1, x2, y2, x3, y3);
+//		if(1==1)
+//			return;
+//		System.out.println("rasterizing TOPsided tri: " + x1 + "," + y1 + "; " + x2 + "," + y2 + "; " + x3 + "," + y3);
+		
+		int[] framebufferBuffer = framebuffer.buffer;
+		double[] framebufferZBuffer = framebuffer.zBuffer;
+		int framebufferWidth = framebuffer.width;
+		
+		//RASTERIZATION
+		double xLeft = x1; //left border of the triangle, defines beginning of X-Loop's range
+		double xRight = x2; //right border of the triangle, defines end of X-Loop's range
+		
+		double xDeltaLeft = (x3 - x1) / (double)(y3 - y1); // value that gets added to xLeft for every Row (Y-Iteration) that passes
+		double xDeltaRight = (x3 - x2) / (double)(y3 - y2); // value that gets added to xRight (if right side of triangle is pointed to the middle, this value will be negative) for every Row (Y-Iteration) that passes
+		
+		//Z-BUFFERING
+		double zGradientHorizontal = (z2 - z1) / (x2 - x1); //amount of z that gets added for every step in the x-direction		
+		double zLeft = z1;
+		double zDeltaPerRow = (z1 - z3) / (y1 - y3); //amount of z that gets added for every step in the y-direction (interpolation between Point3 and Point1, splitting it up in the number of rows)
+
+		
+		//TEXTURING
+		double textureLeftX = tex1x; //left border of the textures X coord
+		double textureLeftY = tex1y; //left border of the textures Y coord
+//		double textureRightX = textureCoordinates[2][0]; //right border of the textures X coord
+//		double textureRightY = textureCoordinates[2][1]; //right border of the textures Y coord
+		
+		double textureGradientXHorizontal = (tex2x-textureLeftX) / (x2-x1); //amount that gets added to textureX for every horizontal step
+		double textureGradientYHorizontal = (tex2y-textureLeftY) / (x2-x1); //amount that gets added to textureY for every horizontal step
+		
+		double textureDeltaXPerRow = (tex3x-textureLeftX) / (y3-y1);
+		double textureDeltaYPerRow = (tex3y-textureLeftY) / (y3-y1);
+		
+		int[] textureMatrix = texture.getTextureMatrix();
+		int textureMatrixWidth = texture.textureMatrixWidth;
+		int textureMatrixHeight = texture.textureMatrixHeight;
+		
+		
+		
+		//if the baseline of this triangles lies a bit out of the viewport, some y-rows will be skipped. xDelta still needs to updated for those skipped rows:
+		int rowsSkipped;
+		if((rowsSkipped = -y1) > 0) {
+			xLeft += rowsSkipped * xDeltaLeft;
+			xRight += rowsSkipped * xDeltaRight;
+			zLeft += rowsSkipped * zDeltaPerRow;
+			
+			
+			textureLeftX += rowsSkipped * textureDeltaXPerRow;
+			textureLeftY += rowsSkipped * textureDeltaYPerRow;
+		}
+		
+		int maxY = Math.min(framebuffer.height-1, y3);
+		double zCurrent;
+		double textureXCurrent;
+		double textureYCurrent;
+		int xSkipped;
+		int bufferAddres;		
+		for(int y = Math.max(0, y1); y <= maxY; y++) {
+			zCurrent = zLeft;
+			textureXCurrent = textureLeftX;
+			textureYCurrent = textureLeftY;
+			if((xSkipped = (int) -xLeft) > 0) { //check if some xValues (from the left onwards) got skipped				
+				zCurrent += xSkipped * zGradientHorizontal;
+				
+				textureXCurrent += xSkipped * textureGradientXHorizontal;
+				textureYCurrent += xSkipped * textureGradientYHorizontal;
+			}
+			bufferAddres = (y * framebufferWidth) + ((int) Math.max(0, xLeft));
+			for(int x = (int) Math.max(0, xLeft); x < Math.min(framebuffer.width-1, xRight); x++) {
+//				framebufferBuffer[y * framebufferWidth + x] = colorIndex;
+				if(framebufferZBuffer[bufferAddres] > zCurrent) {
+					framebufferZBuffer[bufferAddres] = zCurrent;
+					
+					if(textureYCurrent >= 0 && textureYCurrent < 1.01 && textureXCurrent >= 0 && textureXCurrent < 1) {
+						if(textureYCurrent < 1) {
+							framebufferBuffer[bufferAddres] = textureMatrix[(int)((textureYCurrent) * textureMatrixWidth) * textureMatrixWidth + (int)(textureXCurrent * textureMatrixWidth)];
+						} else {
+							framebufferBuffer[bufferAddres] = textureMatrix[(textureMatrixHeight-1) * textureMatrixWidth + (int)(textureXCurrent * textureMatrixWidth)];
+//							System.out.println(textureYCurr);
+						}
+					} else
+						framebufferBuffer[bufferAddres] = 0;
+				}
+				zCurrent += zGradientHorizontal;
+				
+				textureXCurrent += textureGradientXHorizontal;
+				textureYCurrent += textureGradientYHorizontal;
+				
+				bufferAddres++;
+			}
+			xLeft += xDeltaLeft;
+			xRight += xDeltaRight;
+			zLeft += zDeltaPerRow;
+			
+			textureLeftX += textureDeltaXPerRow;
+			textureLeftY += textureDeltaYPerRow;
 		}
 	}
 	
@@ -725,8 +1103,9 @@ public class Calculator {
 	}
 	
 	public static double[][] copyTriangle(double[][] triangle) {
-		double[][] copy = new double[5][3];
+		double[][] copy = new double[6][];
 		for(int x1 = 0; x1 < 3; x1++) {
+			copy[x1] = new double[3];
 			for(int x2 = 0; x2 < 3; x2++) {
 //				System.out.println(Calculator.toString(triangle)  + ", " + x1);
 				copy[x1][x2] = triangle[x1][x2];
@@ -737,8 +1116,18 @@ public class Calculator {
 			copy[3][1] = triangle[3][1];
 			copy[3][2] = triangle[3][2];
 		}
-		if(triangle.length > 4 && triangle[4] != null)
+		if(triangle.length > 4 && triangle[4] != null && triangle[4].length > 0)
 			copy[4][0] = triangle[4][0];
+		
+		if(triangle.length > 5 && triangle[5] != null) {
+			copy[5] = new double[6];
+			copy[5][0] = triangle[5][0];
+			copy[5][1] = triangle[5][1];
+			copy[5][2] = triangle[5][2];
+			copy[5][3] = triangle[5][3];
+			copy[5][4] = triangle[5][4];
+			copy[5][5] = triangle[5][5];
+		}
 		return copy;
 	}
 	
@@ -874,25 +1263,25 @@ public class Calculator {
 				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
 					return new double[][][] {triangle};
 				} else {
-					return clipTriangle2PointsVisible(triangle[2], triangle[0], triangle[1]);
+					return clipTriangle2PointsVisible(triangle[2], triangle[0], triangle[1], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				}				
 			} else {
 				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
-					return clipTriangle2PointsVisible(triangle[1], triangle[2], triangle[0]);
+					return clipTriangle2PointsVisible(triangle[1], triangle[2], triangle[0], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				} else {
-					return clipTriangle1PointVisible(triangle[1], triangle[2], triangle[0]);
+					return clipTriangle1PointVisible(triangle[1], triangle[2], triangle[0], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				}
 			}			
 		} else {//if(triangle[0][2] < CLIPPING_Z_MINIMUM && triangle[1][2] < CLIPPING_Z_MINIMUM && triangle[2][2] < CLIPPING_Z_MINIMUM)
 			if(triangle[1][2] > CLIPPING_Z_MINIMUM) {
 				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
-					return clipTriangle2PointsVisible(triangle[0], triangle[1], triangle[2]);
+					return clipTriangle2PointsVisible(triangle[0], triangle[1], triangle[2], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				} else {
-					return clipTriangle1PointVisible(triangle[2], triangle[0], triangle[1]);
+					return clipTriangle1PointVisible(triangle[2], triangle[0], triangle[1], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				}				
 			} else {
 				if(triangle[2][2] > CLIPPING_Z_MINIMUM) {
-					return clipTriangle1PointVisible(triangle[0], triangle[1], triangle[2]);
+					return clipTriangle1PointVisible(triangle[0], triangle[1], triangle[2], (triangle.length>5&&triangle[5]!=null&&triangle[5].length>0 ? triangle[5] : null));
 				} else {
 					//三角のポイントがすべてカメラの後ろで
 					return null;
@@ -901,26 +1290,47 @@ public class Calculator {
 		}
 	}
 	
-	private static double[][][] clipTriangle2PointsVisible(double[] pointToClip, double[] point2, double[] point3) {
+	private static double[][][] clipTriangle2PointsVisible(double[] pointToClip, double[] point2, double[] point3, double[] textureCoordinates) {
 		double pointNew12InterpolationFactor = (-pointToClip[2]+CLIPPING_Z_MINIMUM)/(point2[2]-pointToClip[2]); //=> Distance from z=Z_MIN Plane to pointToClip  /  Distance from pointToClip to P2
 		double[] pointNew12 = new double[] {(point2[0]-pointToClip[0])*pointNew12InterpolationFactor + pointToClip[0], (point2[1]-pointToClip[1])*pointNew12InterpolationFactor + pointToClip[1], CLIPPING_Z_MINIMUM};
 		double pointNew13InterpolationFactor = (-pointToClip[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip[2]); //=> Distance from z=Z_MIN Plane to pointToClip  /  Distance from pointToClip to P2
 		double[] pointNew13 = new double[] {(point3[0]-pointToClip[0])*pointNew13InterpolationFactor + pointToClip[0], (point3[1]-pointToClip[1])*pointNew13InterpolationFactor + pointToClip[1], CLIPPING_Z_MINIMUM};
 		
-		return new double[][][] {
-			{pointNew12, point2, point3},
-			{pointNew13, copy(pointNew12), copy(point3)}
-		};
+		if(textureCoordinates == null) {		
+			return new double[][][] {
+				{pointNew12, point2, point3},
+				{pointNew13, copy(pointNew12), copy(point3)}
+			};
+		} else {
+			final double texturePointNew12X = textureCoordinates[0] + ((textureCoordinates[2]-textureCoordinates[0])*pointNew12InterpolationFactor);
+			final double texturePointNew12Y = textureCoordinates[1] + ((textureCoordinates[3]-textureCoordinates[1])*pointNew12InterpolationFactor);
+			final double texturePointNew13X = textureCoordinates[0] + ((textureCoordinates[4]-textureCoordinates[0])*pointNew13InterpolationFactor);
+			final double texturePointNew13Y = textureCoordinates[1] + ((textureCoordinates[5]-textureCoordinates[1])*pointNew13InterpolationFactor);
+			return new double[][][] {
+				{pointNew12, point2, point3, {}, {}, new double[] {texturePointNew12X, texturePointNew12Y, textureCoordinates[2], textureCoordinates[3], textureCoordinates[4], textureCoordinates[5]}},
+				{pointNew13, copy(pointNew12), copy(point3), {}, {}, new double[] {texturePointNew13X, texturePointNew13Y, texturePointNew12X, texturePointNew12Y, textureCoordinates[4], textureCoordinates[5]}}
+			};
+		}
 	}
 	
-	private static double[][][] clipTriangle1PointVisible(double[] pointToClip1, double[] pointToClip2, double[] point3) {
+	private static double[][][] clipTriangle1PointVisible(double[] pointToClip1, double[] pointToClip2, double[] point3, double[] textureCoordinates) {
 		double pointNew13InterpolationFactor = (-pointToClip1[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip1[2]); //=> Distance from z=Z_MIN Plane to pointToClip1  /  Distance from pointToClip1 to P3
 		double[] pointNew13 = new double[] {(point3[0]-pointToClip1[0])*pointNew13InterpolationFactor + pointToClip1[0], (point3[1]-pointToClip1[1])*pointNew13InterpolationFactor + pointToClip1[1], CLIPPING_Z_MINIMUM};
 		double pointNew23InterpolationFactor = (-pointToClip2[2]+CLIPPING_Z_MINIMUM)/(point3[2]-pointToClip2[2]); //=> Distance from z=Z_MIN Plane to pointToClip2  /  Distance from pointToClip2 to P3
 		double[] pointNew23 = new double[] {(point3[0]-pointToClip2[0])*pointNew23InterpolationFactor + pointToClip2[0], (point3[1]-pointToClip2[1])*pointNew23InterpolationFactor + pointToClip2[1], CLIPPING_Z_MINIMUM};
 		
-		return new double[][][] {
-			{pointNew13, pointNew23, point3}
-		};
+		if(textureCoordinates == null) {
+			return new double[][][] {
+				{pointNew13, pointNew23, point3}
+			};
+		} else {
+			final double texturePointNew13X = textureCoordinates[0] + ((textureCoordinates[4]-textureCoordinates[0])*pointNew13InterpolationFactor);
+			final double texturePointNew13Y = textureCoordinates[1] + ((textureCoordinates[5]-textureCoordinates[1])*pointNew13InterpolationFactor);
+			final double texturePointNew23X = textureCoordinates[2] + ((textureCoordinates[4]-textureCoordinates[2])*pointNew23InterpolationFactor);
+			final double texturePointNew23Y = textureCoordinates[3] + ((textureCoordinates[5]-textureCoordinates[3])*pointNew23InterpolationFactor);
+			return new double[][][] {
+				{pointNew13, pointNew23, point3, {}, {}, new double[] {texturePointNew13X, texturePointNew13Y, texturePointNew23X, texturePointNew23Y, textureCoordinates[4], textureCoordinates[5]}}
+			};
+		}
 	}
 }

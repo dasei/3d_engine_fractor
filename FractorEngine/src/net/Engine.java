@@ -5,12 +5,11 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.util.Arrays;
 
 import net.buffering.FramebufferManager;
+import net.buffering.Texture;
 import net.gameobjects.GameObject;
-import net.maths.GameObjectFactory;
 import net.window.Window;
 
 public class Engine {
@@ -68,7 +67,7 @@ public class Engine {
 //		addTriangles(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\chair_highres.obj"))));
 		//DRAGON:
 //		addTriangles(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFile(new File("H:\\BlenderAwesomeFiles\\27-blender\\blender\\Dragon_2.5_For_Animations.obj"))));
-		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("objects3d/Dragon_2.5_For_Animations.obj"))));
+//		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("objects3d/Dragon_2.5_For_Animations.obj"))));
 		
 		//millenium falcon
 //		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\millenium-falcon.obj"))));
@@ -85,6 +84,11 @@ public class Engine {
 //			{{-1, 0, -1}, {-1, 0, 10}, {-1, -10, 10}}
 //		}));
 		
+		//Texturing
+		Texture.textureDEBUG = new Texture(new int[0], 0);
+		addGameObject(new GameObject(new double[][][] {
+			{{0, 1, 2}, {1, -1, 2}, {-1, -1, 2}, {}, {}, {0.5, 0, 1, 1, 0, 1}} 
+		}, Texture.textureDEBUG));
 		
 		
 		

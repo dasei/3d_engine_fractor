@@ -1,5 +1,6 @@
 package net.gameobjects;
 
+import net.buffering.Texture;
 import net.maths.Calculator;
 
 public class GameObject {
@@ -8,7 +9,15 @@ public class GameObject {
 	
 	protected double[] position;
 	
+	private Texture texture;
+	
+	
 	private boolean cachingOfAbsoluteCoordinates = true;
+	
+	public GameObject(double[][][] triangles, Texture texture) {
+		this(triangles);
+		this.texture = texture;
+	}
 	
 	public GameObject(double[][][] triangles) {
 		this.triangles = triangles;
