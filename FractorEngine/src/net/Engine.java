@@ -5,11 +5,12 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Arrays;
 
 import net.buffering.FramebufferManager;
-import net.buffering.Texture;
 import net.gameobjects.GameObject;
+import net.maths.GameObjectFactory;
 import net.window.Window;
 
 public class Engine {
@@ -73,8 +74,8 @@ public class Engine {
 //		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\millenium-falcon.obj"))));
 		
 //		//LAMP
-//		GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
-//		addGameObject(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\lamp.obj")));
+		//GameObjectFactory.displayLightPoint(triangles, new double[] {-4.908, 17.36, 0});
+		addGameObject(GameObjectFactory.readFromFileGameObject(new File("objects3d\\lamp.obj")));
 		
 		//PROCEDURAL-SPHERE
 //		addGameObject(new SphereProcedural(2).move(5, 0, 0));
@@ -84,16 +85,16 @@ public class Engine {
 //			{{-1, 0, -1}, {-1, 0, 10}, {-1, -10, 10}}
 //		}));
 		
-		//Texturing
-		Texture.textureDEBUG = new Texture(new int[0], 0);
-		addGameObject(new GameObject(new double[][][] {
-			{{0, 1, 2}, {1, -1, 2}, {-1, -1, 2}, {}, {}, {0.5, 0, 1, 1, 0, 1}} 
-		}, Texture.textureDEBUG));
+//		//Texturing
+//		Texture.textureDEBUG = new Texture(new int[0], 0);
+//		addGameObject(new GameObject(new double[][][] {
+//			{{0, 1, 2}, {1, -1, 2}, {-1, -1, 2}, {}, {}, {0.5, 0, 1, 1, 0, 1}} 
+//		}, Texture.textureDEBUG));
 		
 		
 		
 		//GROUND
-//		addTriangles(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\ground.obj")));
+		addGameObject(GameObjectFactory.readFromFileGameObject(new File("objects3d\\ground.obj")));
 		
 //		for(int cycle = 0; cycle < 7; cycle++) {
 //			double[][][] cache = new double[][][] {{{-5 + (cycle*10), 0, 10}, {0+(cycle*10), 5, 10}, {5+(cycle*10), 0, 10}}};

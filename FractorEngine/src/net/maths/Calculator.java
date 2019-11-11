@@ -69,11 +69,16 @@ public class Calculator {
 		double[][] triangle;
 		for(int g = 0; g < gameObjects.length; g++) {
 			triangles = gameObjects[g].getTrianglesAbsolute();
+			
+//			if(Math.random()<0.01)
+//				GameObjectFactory.randomizeColor(triangles);
+			
 			for(int t = 0; t < triangles.length; t++) {
 				if(triangles[t] == null)
 					continue;
 				triangle = copyTriangle(triangles[t]);
 				
+				GameObjectFactory.displayLightPoint(new double[][][] {triangle}, new double[] {-4.908, 17.36, 0});
 	//			double rot = 0.6266468;
 	//			rotateVectorX2(triangle[0], rot);
 	//			rotateVectorX2(triangle[1], rot);
@@ -198,19 +203,7 @@ public class Calculator {
 					
 					
 					//TODO ADD THIS AGAIN!!!!!!!!!!!!!!!
-//					rasterizeTriangle(framebuffer, (int)triangle[4][0],
-//							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
-//							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
-//							triangleCurrent[0][2],
-//							(int) ((1+triangleCurrent[1][0])*resolutionWidthHalf),
-//							(int) ((1-triangleCurrent[1][1])*resolutionWidthHalf),
-//							triangleCurrent[1][2],
-//							(int) ((1+triangleCurrent[2][0])*resolutionWidthHalf),
-//							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
-//							triangleCurrent[2][2]
-//					);
-					
-					rasterizeTriangle(framebuffer, Texture.textureDEBUG, triangleCurrent[5],
+					rasterizeTriangle(framebuffer, (int)triangle[4][0],
 							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
 							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
 							triangleCurrent[0][2],
@@ -221,6 +214,18 @@ public class Calculator {
 							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
 							triangleCurrent[2][2]
 					);
+					
+//					rasterizeTriangle(framebuffer, Texture.textureDEBUG, triangleCurrent[5],
+//							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
+//							triangleCurrent[0][2],
+//							(int) ((1+triangleCurrent[1][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[1][1])*resolutionWidthHalf),
+//							triangleCurrent[1][2],
+//							(int) ((1+triangleCurrent[2][0])*resolutionWidthHalf),
+//							(int) ((1-triangleCurrent[2][1])*resolutionWidthHalf),
+//							triangleCurrent[2][2]
+//					);
 					
 					
 					
@@ -1112,12 +1117,15 @@ public class Calculator {
 			}	
 		}
 		if(triangle.length > 3 && triangle[3] != null && triangle[3].length > 0) {
+			copy[3] = new double[3];
 			copy[3][0] = triangle[3][0];
 			copy[3][1] = triangle[3][1];
 			copy[3][2] = triangle[3][2];
 		}
-		if(triangle.length > 4 && triangle[4] != null && triangle[4].length > 0)
+		if(triangle.length > 4 && triangle[4] != null && triangle[4].length > 0) {
+			copy[4] = new double[1];
 			copy[4][0] = triangle[4][0];
+		}
 		
 		if(triangle.length > 5 && triangle[5] != null) {
 			copy[5] = new double[6];
