@@ -213,7 +213,7 @@ public class GameObjectFactory {
 			if(triangles[t][4] == null)
 				triangles[t][4] = new double[3];
 //			System.out.println(color);
-			triangles[t][4][0] = engine.registerColor(new Color(color, color, color));
+			triangles[t][4][0] = engine.registerColor(new Color(color, 0, color));
 		}
 		return triangles;
 	}

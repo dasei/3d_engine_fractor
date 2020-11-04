@@ -47,7 +47,7 @@ public class Engine {
 	}
 	
 	private void init() {
-		this.resolution = new Dimension(500, 500);
+		this.resolution = new Dimension(1000, 1000);
 		
 		this.framebufferManager = new FramebufferManager(this.resolution, this.synchronousCode);
 		
@@ -65,7 +65,9 @@ public class Engine {
 		//addTriangles(GameObjectFactory.cube(new double[] {0, 0, 1}, 2));
 		
 		//CHAIR:
-//		addTriangles(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFile(new File("H:\\Programmieren\\BlenderFiles\\chair_highres.obj"))));
+//		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("H:\\Programmieren\\BlenderFiles\\chair_highres.obj"))));		
+//		addGameObject(GameObjectFactory.readFromFileGameObject(new File("objects3d\\chair_highres.obj")));
+		
 		//DRAGON:
 //		addTriangles(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFile(new File("H:\\BlenderAwesomeFiles\\27-blender\\blender\\Dragon_2.5_For_Animations.obj"))));
 //		addGameObject(GameObjectFactory.randomizeColor(GameObjectFactory.readFromFileGameObject(new File("objects3d/Dragon_2.5_For_Animations.obj"))));

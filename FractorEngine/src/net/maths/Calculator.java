@@ -70,6 +70,9 @@ public class Calculator {
 		for(int g = 0; g < gameObjects.length; g++) {
 			triangles = gameObjects[g].getTrianglesAbsolute();
 			
+			//rotating light point
+//			GameObjectFactory.displayLightPoint(triangles, new double[] {Math.sin(System.currentTimeMillis()/1000d)*25, Math.sin(System.currentTimeMillis()/1000d)*10 + 10, Math.cos(System.currentTimeMillis()/1000d)*25});
+			
 //			if(Math.random()<0.01)
 //				GameObjectFactory.randomizeColor(triangles);
 			
@@ -78,7 +81,10 @@ public class Calculator {
 					continue;
 				triangle = copyTriangle(triangles[t]);
 				
+				//LICHT der LATERNE::
 				GameObjectFactory.displayLightPoint(new double[][][] {triangle}, new double[] {-4.908, 17.36, 0});
+				
+				
 	//			double rot = 0.6266468;
 	//			rotateVectorX2(triangle[0], rot);
 	//			rotateVectorX2(triangle[1], rot);
@@ -203,7 +209,7 @@ public class Calculator {
 					
 					
 					//TODO ADD THIS AGAIN!!!!!!!!!!!!!!!
-					rasterizeTriangle(framebuffer, (int)triangle[4][0],
+					rasterizeTriangle(framebuffer, triangle[4] != null ? (int)triangle[4][0] : 0,
 							(int) ((1+triangleCurrent[0][0])*resolutionWidthHalf),
 							(int) ((1-triangleCurrent[0][1])*resolutionWidthHalf),
 							triangleCurrent[0][2],
